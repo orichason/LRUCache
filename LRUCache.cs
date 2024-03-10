@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 
 namespace LRUCache
 {
-    internal enum Operations
-    {
-        Add,
-        Subtract,
-        Multiply,
-        Divide
-    };
-    internal struct Equation
-    {
-        int a;
-        int b;
-        Operations operation;
-    }
+    //internal enum Operations
+    //{
+    //    Add,
+    //    Subtract,
+    //    Multiply,
+    //    Divide
+    //};
+    //internal struct Equation
+    //{
+    //    int a;
+    //    int b;
+    //    Operations operation;
+    //}
     public interface ICache<TKey, TValue>
     {
         bool TryGetValue(TKey key, out TValue value);
@@ -51,6 +51,10 @@ namespace LRUCache
             LRU = new();
         }
 
+        /// <summary>
+        /// Moves node to front of linked list
+        /// </summary>
+        /// <param name="node"></param>
         void MoveNodeToFront(LinkedListNode<KeyValuePair<TKey, TValue>> node)
         {
             LRU.Remove(node);
@@ -65,9 +69,11 @@ namespace LRUCache
         /// <param name="value"></param>
         void ICache<TKey, TValue>.Put(TKey key, TValue value)
         {
+            KeyValuePair<TKey, TValue> keyValuePair = new(key, value);
+
             if (hashMap.ContainsKey(key))
             {
-                hashMap[key].Value.Value = value;
+                hashMap[key].Value = keyValuePair;
                 MoveNodeToFront(hashMap[key]);
             }
 
@@ -75,12 +81,11 @@ namespace LRUCache
             {
                 if (hashMap.Count == capacity)
                 {
-                    var nodeToRemove = LRU.Last;
-
+                    LRU.Remove(LRU.Last!); //removes last node to make space
                 }
-                var newNode = new LinkedListNode<TValue>(value);
-                hashMap.Add(key, newNode);
-                LRU.AddFirst(newNode);
+                var nodeToAdd = new LinkedListNode<KeyValuePair<TKey, TValue>>(keyValuePair);
+                hashMap.Add(key, nodeToAdd);
+                LRU.AddFirst(nodeToAdd);
             }
         }
 
@@ -97,7 +102,7 @@ namespace LRUCache
                 var nodeToMove = hashMap[key];
                 MoveNodeToFront(nodeToMove);
 
-                value = nodeToMove.Value;
+                value = nodeToMove.Value.Value;
                 return true;
             }
 
